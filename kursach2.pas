@@ -1,4 +1,4 @@
-program haudorf;
+program hausdorf;
 
 {The basic type, representing both points and vectors in 2D spaces.}
 type Vector = array [0..1] of Double;
@@ -147,7 +147,7 @@ function isInList(target: pLinkedList; p: Vector): Boolean;
 		curNode := target^.head;
 
 		for i:= 1 to target^.size do begin
-			if ((curNode^.data[0] = p[0]) and (curNode^.data[1] = p[1])) then begin
+			if (abs(curNode^.data[0] - p[0]) <= ROUND_KOEF) and (abs(curNode^.data[1] - p[1]) <= ROUND_KOEF) then begin
 				isInList := True;
 				exit;
 			end;
@@ -368,12 +368,12 @@ function contains(pol: pLinkedList; p: Vector): Boolean;
 
 			curNode := curNode^.next;
 
-			if (abs(pr1) < ROUND_KOEF) and (abs(pr2) < ROUND_KOEF) then begin
+			if (abs(pr1) <= ROUND_KOEF) and (abs(pr2) <= ROUND_KOEF) then begin
 				contains := True;
 				exit;
 			end
 
-			else if (abs(pr1) < ROUND_KOEF) or (abs(pr2) < ROUND_KOEF) then begin
+			else if (abs(pr1) <= ROUND_KOEF) or (abs(pr2) <= ROUND_KOEF) then begin
 				continue;
 			end;
 
@@ -406,7 +406,7 @@ procedure getMin(target, source: pLinkedList);
 		curNode := source^.head;
 
 		for i := 1 to source^.size do begin
-			if abs(vectorLength(curNode^.data) - min) < ROUND_KOEF then addTo(target, curNode^.data);
+			if abs(vectorLength(curNode^.data) - min) <= ROUND_KOEF then addTo(target, curNode^.data);
 			curNode := curNode^.next;
 		end;
 	end;
@@ -431,7 +431,7 @@ procedure getMax(target, source: pLinkedList);
 		curNode := source^.head;
 
 		for i := 1 to source^.size do begin
-			if abs(vectorLength(curNode^.data) - max) < ROUND_KOEF then addTo(target, curNode^.data);
+			if abs(vectorLength(curNode^.data) - max) <= ROUND_KOEF then addTo(target, curNode^.data);
 			curNode := curNode^.next;
 		end;
 	end;
@@ -481,7 +481,7 @@ procedure polygonPolygonDistanceVectors(target, pol1, pol2: pLinkedList); //от
 		end;
 	end;
 
-{The procedure calculates the non-symmetric Hausdorff distance from the first polygon to the second one. The data are stored in the specified list.}
+{The procedure calculates the Hausdorff distance from the first polygon to from second one. The data are stored in the specified list.}
 procedure hausdorfDistanceVectors(target, pol1, pol2: pLinkedList);//от первого ко второму
 	var pom1, pom2: pLinkedList;
 	var i: Integer;
@@ -517,7 +517,7 @@ function quadrant(p: vector): Integer;
 		else if (p[0] >= 0) and (p[1] < 0) then quadrant := 4;
 	end;
 
-{The fucntion defining the order of the vectors (based on the angle to the OX-axis).}
+{The function defining the order of the vectors (based on the angle to the OX-axis).}
 function compare(p1, p2: vector): Integer;
 	begin
 		if (quadrant(p1) > quadrant(p2)) then begin
@@ -639,7 +639,7 @@ function isOptimal(distVecs: pLinkedList): Boolean;
 	var zero: vector;
 	begin
 		if distVecs^.size = 1 then begin
-			if vectorLength(distVecs^.head^.data) < ROUND_KOEF then begin
+			if vectorLength(distVecs^.head^.data) <= ROUND_KOEF then begin
 				isOptimal := true;
 				exit
 			end
@@ -650,7 +650,7 @@ function isOptimal(distVecs: pLinkedList): Boolean;
 		end
 		else if distVecs^.size = 2 then begin
 			if (pseudoScalarProduct(distVecs^.head^.data, distVecs^.head^.next^.data) <= 0) and
-			(abs(pseudoScalarProduct(normalise(distVecs^.head^.data), normalise(distVecs^.head^.next^.data)))<ROUND_KOEF) then begin
+			(abs(pseudoScalarProduct(normalise(distVecs^.head^.data), normalise(distVecs^.head^.next^.data))) <= ROUND_KOEF) then begin
 				isOptimal := true;
 				exit;
 			end
@@ -690,11 +690,12 @@ procedure process(inFile1, inFile2, outFile: String);
 		initList(vecs);
 		hausdorfDistanceVectors(vecs, pol1, pol2);
 		status('Finished calculating Hausdorf vectors');
-		writeln(outFile, 'Vectors');
+		writeln(outF, 'The distance is reached on the following vectors:');
+		writeln(outF, 'Vectors');
 		printFormatList(vecs, 5, 5, outF);
-		writeln(outf, '');
-		writeln(outF, 'Length: ',  vectorLength(vecs^.head^.data):5:5);
-		writeln(outF, 'Position is optimal: ', isOptimal(vecs));
+		writeln(outF, '');
+		writeln(outF, 'Hausdorff distance: ',  vectorLength(vecs^.head^.data):5:5);
+		writeln(outF, 'The mutual position of the polygons is optimal: ', isOptimal(vecs));
 		status('Finished printing data out');
 		closeSources;
 		status('Process finished');
@@ -725,7 +726,7 @@ procedure prcs();
 procedure printIntro();
 	begin
 		writeln('');
-		writeln('Hausdorf v.1.0');
+		writeln('Hausdorff v.1.1');
 		writeln('');
 		writeln('Charles University in Prague, Faculty of Mathematics and Physics');
 		writeln('Summer semester, school year 2016/2017');
@@ -797,12 +798,9 @@ procedure changeOutFolder();
 	end;
 
 procedure changeRoundKoef();
-	var path1: Double;
 	begin
 		write('Enter new rounding threshold: ');
-		readln(path1);
-		writeln();
-		ROUND_KOEF := path1;
+		readln(ROUND_KOEF);
 	end;
 
 {The procedure processes the command that was typed by user. The control is passed to the relevant procedure or subprogram. If the command is not in the list, the procedure 'unknownCommand()' will be called.
@@ -824,8 +822,8 @@ procedure processCommand(com: String);
 
 {The actual body of the programme. Sets the default values for the 'inFolder' and 'outFolder' variables, prints out the information about the programme and the current settings, launches the standard working loop of the programme.}
 begin
-	inFolder := 'D:\\Ring\\Experiments\\University\\Hausd\\Input\\';
-	outFolder := 'D:\\Ring\\Experiments\\University\\Hausd\\Output\\';
+	inFolder := 'D:\\Temp\\Input\\';
+	outFolder := 'D:\\Temp\\Output\\';
 
 	printIntro();
 	printSettings();

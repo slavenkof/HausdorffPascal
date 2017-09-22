@@ -1,5 +1,6 @@
-126.79492; 500.00000
+The distance is reached on the following vectors:
+Vectors
 126.79492; 500.00000
 
-Length: 515.82647
-Position is optimal: FALSE
+Hausdorff distance: 515.82647
+The mutual position of the polygons is optimal: FALSE
